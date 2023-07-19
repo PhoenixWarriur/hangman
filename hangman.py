@@ -28,6 +28,8 @@ hangman_stages = [
 
 LINE_UP = Utils.MOVE_CURSOR_PREV_LINE_BEGIN
 LINE_CLEAR = Utils.ERASE_TO_END
+PADDING = " \t"
+FONT = "big"
 
 settings = TextStyle.BOLD  # default text design
 lines = len(hangman_stages[0]) + 2  # window lines to delete
@@ -36,6 +38,12 @@ df = pd.read_csv('hangman_dataset.csv')
 '''
 hangman game class, it is responsible for all of the game including displaying the design
 '''
+
+
+def text2drawing(text):
+    return PADDING + pyfiglet.figlet_format(text, font=FONT).replace('\n', '\n' + PADDING)
+
+
 class Hangman():
     def __init__(self):
         self.alive = True
@@ -51,14 +59,18 @@ class Hangman():
     '''draw the game logo, 
     get the topic and the word fo the game and
     print the topic'''
+
     def start_game(self):
-        print(settings + pyfiglet.figlet_format("Hangman", font="big") +"\n\n\n\n")  # print the game logo
+        print(Utils.MOVE_CURSOR_HOME + Utils.ERASE_TO_END)
+        print(settings + text2drawing("Hangman") + "\n\n\n\n")  # print the game logo
         topics = list(df.keys())
-        print(f"Choose the topic ({', '.join(map(lambda x: x[0] + ' - ' + x, topics + ['Random']))}):")  # print the topics and add a random topic
+        print(
+            f"{PADDING}Choose the topic ({', '.join(map(lambda x: x[0] + ' - ' + x, topics + ['Random']))}):")  # print the topics and add a random topic
 
         def get_topic():
-            chosen_topic = input("Please enter your chosen topic here: ").upper()
-            possible_topic = list(filter(lambda x: x.upper().startswith(chosen_topic), topics + ['Random']))  # get the topic written
+            chosen_topic = input(PADDING+"Please enter your chosen topic here: ").upper()
+            possible_topic = list(
+                filter(lambda x: x.upper().startswith(chosen_topic), topics + ['Random']))  # get the topic written
             if len(possible_topic) == 1:  # if the topic exists
                 self.topic = possible_topic[0]  # save the topic to self.topic
             if self.topic == 'Random':  # if the topic is random, get a random topic
@@ -72,7 +84,7 @@ class Hangman():
 
         self.word = random.choice(df[self.topic].tolist())  # get a random word
         print(LINE_UP * 2, end=LINE_CLEAR)  # delete two lines above
-        print(f'Topic: {self.topic}\n')
+        print(f'{PADDING}Topic: {self.topic}\n')
         self.display()
 
     def display(self):
@@ -92,17 +104,18 @@ class Hangman():
 
         for i in range(len(reshaped)):
             window[i + 3] = window[i + 3] + '\t' + ', '.join(reshaped[i])
-        print(*window, sep='\n')
-        print()
 
-        print(' '.join(self.hidden_word))
+        window.append('\n' + PADDING + ' '.join(self.hidden_word))
+        print(PADDING + ('\n' + PADDING).join(window))
 
     def hide_word(self):
-        self.hidden_word = [TextStyle.UNDERLINE + i + TextStyle.RESET + settings if i.upper() in self.correctly_guessed and i != ' ' else ' ' if i == ' ' else TextStyle.UNDERLINE + ' ' + TextStyle.RESET + settings for i in self.word]
+        self.hidden_word = [
+            TextStyle.UNDERLINE + i + TextStyle.RESET + settings if i.upper() in self.correctly_guessed and i != ' ' else ' ' if i == ' ' else TextStyle.UNDERLINE + ' ' + TextStyle.RESET + settings
+            for i in self.word]
 
     def guess(self, guess):
         while not guess.isalpha() or guess.upper() in self.correctly_guessed + self.used_letters or len(guess) != 1:
-            print(LINE_UP, end=LINE_CLEAR)
+            print(LINE_UP, end=LINE_CLEAR + PADDING)
             if not guess.isalpha():
                 guess = input('Your guess is not alphabetic. Please enter another guess here:')
 
@@ -122,19 +135,21 @@ class Hangman():
     def is_alive(self):
         if not (self.stage < len(hangman_stages) - 1):
             self.alive = False
+            print(Utils.MOVE_CURSOR_HOME + Utils.ERASE_TO_END)
             print(
-                f'\n{FgColors.RED}{pyfiglet.figlet_format("YOU    DIED !", font="big")}\nyour topic was {self.topic} and your word was {self.word}')
+                f'\n{FgColors.RED}{text2drawing("YOU    DIED !")}\n{PADDING}your topic was {self.topic} and your word was {self.word}')
 
     def is_won(self):
         if len(set(self.correctly_guessed)) == len(set(self.word.replace(' ', '').upper())):
             self.won = True
+            print(Utils.MOVE_CURSOR_HOME + Utils.ERASE_TO_END)
             print(
-                f'\n{FgColors.GREEN}{pyfiglet.figlet_format("YOU    WON !", font="big")}\nyour topic was {self.topic} and your word was {self.word}')
+                f'\n{FgColors.GREEN}{text2drawing("YOU    WON !")}\n{PADDING}your topic was {self.topic} and your word was {self.word}')
 
     def game_loop(self):
         self.start_game()
         while self.alive and not self.won:
-            self.guess(input('Please enter you guess here: '))
+            self.guess(input(PADDING + 'Please enter you guess here: '))
             print(LINE_UP, end=LINE_CLEAR)
             self.display()
             self.is_alive()
