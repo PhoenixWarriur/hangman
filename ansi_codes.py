@@ -30,8 +30,9 @@ class FgColors:
     BRIGHT_WHITE = '\033[97m'
 
     @staticmethod
-    def rbg2ansi(r, g, b):
-        return f'\033[38;2;{r};{b};{g}m'
+    def rbg2ansi(rgb):
+        r, g, b = rgb
+        return f'\033[38;2;{r};{g};{b}m'
 
 
 class BgColors:
@@ -53,8 +54,9 @@ class BgColors:
     BRIGHT_WHITE = '\033[107m'
 
     @staticmethod
-    def rbg2ansi(r, g, b):
-        return f'\033[48;2;{r};{b};{g}m'
+    def rbg2ansi(rgb):
+        r,g,b=rgb
+        return f'\033[48;2;{r};{g};{b}m'
 
 
 class Utils:
